@@ -16,8 +16,9 @@ const BorderRadius styleBorder = BorderRadius.only(
 
 
 class RegistroView extends StatefulWidget {
-  const RegistroView({super.key, this.pai,});
+  const RegistroView({super.key, this.pai, this.superior});
   final int? pai;
+  final String? superior;
 
   @override
   State<StatefulWidget> createState() {
@@ -38,12 +39,19 @@ class _RegistroViewState extends State<RegistroView> {
   @override
   void initState() {
     super.initState();
-    _getTitle();
 
     Registro.get(id: widget.pai ?? 0).then((value) {
-      setState(() {
-        registro = value;
-      });
+      if (value != null) {
+        setState(() {
+          registro = value;
+          if (widget.superior != null){
+            title = "${widget.superior} / ${value.nome!}";
+          } else {
+            title = value.nome!;
+          }
+
+        });
+      }
     });
 
     Registro.filter(pai: widget.pai ?? 0).then((value) {
@@ -55,8 +63,8 @@ class _RegistroViewState extends State<RegistroView> {
 
   Future<void> startBarcodeScanStream() async {
     FlutterBarcodeScanner.getBarcodeStreamReceiver(
-        '#ff6666', 'Cancel', true, ScanMode.BARCODE)!
-        .listen((barcode) => print(barcode));
+      '#ff6666', 'Cancel', true, ScanMode.BARCODE
+    )!.listen((barcode) => print(barcode));
   }
 
   Future<void> scanQR() async {
@@ -64,8 +72,8 @@ class _RegistroViewState extends State<RegistroView> {
 
     try {
       barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
-          '#ff6666', 'Cancelar', true, ScanMode.QR);
-      print(barcodeScanRes);
+        '#ff6666', 'Cancelar', true, ScanMode.QR
+      );
     } on PlatformException {
       barcodeScanRes = 'Falhou.';
     }
@@ -83,7 +91,6 @@ class _RegistroViewState extends State<RegistroView> {
           registros = value;
         });
       });
-      // patrimonios.add(_scanBarcode);
     }
   }
 
@@ -105,12 +112,6 @@ class _RegistroViewState extends State<RegistroView> {
 
     setState(() {
       _scanBarcode = barcodeScanRes;
-    });
-  }
-
-  void _getTitle(){
-    setState(() {
-      title = (registro != null ? registro?.nome : "Inicio")!;
     });
   }
 
@@ -169,6 +170,7 @@ class _RegistroViewState extends State<RegistroView> {
                             Navigator.push(context,
                               MaterialPageRoute(builder: (context) => RegistroView(
                                 pai: registros[index].id,
+                                superior: title,
                               ),
                               ),
                             );
