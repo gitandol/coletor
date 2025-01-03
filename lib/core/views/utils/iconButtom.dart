@@ -18,7 +18,6 @@ Widget iconButtom(
       function(
         context,
         model: registro,
-        tipo: registro.tipo,
       );
     },
     icon: Icon(

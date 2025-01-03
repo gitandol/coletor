@@ -135,7 +135,7 @@ class _RegistroViewState extends State<RegistroView> {
                     children: [
                       if (registros[index].tipo == "P")
                         const Icon(
-                          Icons.create_new_folder, size: 29,
+                          Icons.folder, size: 29,
                         ),
                       const SizedBox(width: 5,),
                       Text(
@@ -156,7 +156,7 @@ class _RegistroViewState extends State<RegistroView> {
                         registro: registros[index],
                         color: Colors.redAccent.shade700,
                         icon: Icons.delete_forever,
-                        function: _deleteRegistro
+                        function: _dialogDelete
                       ),
 
 
@@ -239,13 +239,68 @@ class _RegistroViewState extends State<RegistroView> {
     }
   }
 
-  void _deleteRegistro(BuildContext context, {Registro? model, String? tipo}) async {
+  void _deleteRegistro(
+    BuildContext context,
+    {Registro? model}
+  ) async {
+
     await model?.delete();
     Registro.filter(pai: widget.pai ?? 0).then((value) {
       setState(() {
         registros = value;
       });
     });
+  }
+
+  Future<void> _dialogDelete(
+      BuildContext context, {Registro? model}
+  ) {
+    String titulo = "Deletar?";
+
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          alignment: AlignmentDirectional.center,
+          title: Text(titulo, style: const TextStyle(fontSize: 20),),
+          content: SizedBox(
+            height: 50,
+            child: Text('"${model!.nome}" será deletado permanentemente.'),
+          ),
+          actions: <Widget>[
+            ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(Colors.grey.shade600),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("Cancelar", style: TextStyle(color: Colors.white),)
+                  ],
+                )
+            ),
+            ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(Colors.red.shade600),
+                ),
+                onPressed: () async {
+                  _deleteRegistro(context, model: model);
+                  Navigator.of(context).pop();
+                },
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("Deletar", style: TextStyle(color: Colors.white),)
+                  ],
+                )
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _dialogBuilder(
