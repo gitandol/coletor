@@ -17,6 +17,7 @@ const BorderRadius styleBorder = BorderRadius.only(
 
 class RegistroView extends StatefulWidget {
   const RegistroView({super.key, this.pai, this.superior});
+
   final int? pai;
   final String? superior;
 
@@ -34,7 +35,8 @@ class _RegistroViewState extends State<RegistroView> {
   Registro? registro;
   List<Registro> registros = [];
   int _selectedIndex = 0;
-  String title = "Inicio";
+  String title = "";
+  String corLine = "#ff6666";
 
   @override
   void initState() {
@@ -49,8 +51,9 @@ class _RegistroViewState extends State<RegistroView> {
           } else {
             title = value.nome!;
           }
-
         });
+      } else {
+        title = "Início";
       }
     });
 
@@ -61,18 +64,15 @@ class _RegistroViewState extends State<RegistroView> {
     });
   }
 
-  Future<void> startBarcodeScanStream() async {
-    FlutterBarcodeScanner.getBarcodeStreamReceiver(
-      '#ff6666', 'Cancel', true, ScanMode.BARCODE
-    )!.listen((barcode) => print(barcode));
-  }
-
   Future<void> scanQR() async {
     String barcodeScanRes;
 
     try {
       barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
-        '#ff6666', 'Cancelar', true, ScanMode.QR
+        corLine,
+        'Cancelar',
+        true,
+        ScanMode.QR,
       );
     } on PlatformException {
       barcodeScanRes = 'Falhou.';
@@ -94,32 +94,52 @@ class _RegistroViewState extends State<RegistroView> {
     }
   }
 
-  Future<void> scanBarcodeNormal() async {
-    String barcodeScanRes;
-    try {
-      barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
-        '#ff6666',
-        'Cancelar',
-        true,
-        ScanMode.BARCODE,
-      );
-      print(barcodeScanRes);
-    } on PlatformException {
-      barcodeScanRes = 'Falhou.';
-    }
-
-    if (!mounted) return;
-
-    setState(() {
-      _scanBarcode = barcodeScanRes;
-    });
+  bool isHome(){
+    return widget.pai != null;
   }
+
+  Color primaryColor = Colors.purple.shade900;
+
+  RoundedRectangleBorder appBarShap = const RoundedRectangleBorder(
+    borderRadius: BorderRadius.only(
+      bottomLeft: Radius.circular(20),
+      bottomRight: Radius.circular(20),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: Row(
+          children: [
+            Text(title, style: const TextStyle(color: Colors.white),),
+          ],
+        ),
+        backgroundColor: primaryColor,
+        shape: appBarShap,
+        actions: isHome() ? [
+          IconButton(
+            onPressed: () => {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (context)=> const RegistroView()
+                ),
+                (Route<dynamic> route) => false
+              ),
+            },
+            icon: const Icon(Icons.home, color: Colors.white, size: 25,)
+          ),
+        ] : null,
+        leading: isHome()
+          ? IconButton(
+            color: Colors.white,
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            icon: const Icon(Icons.arrow_back),
+          )
+          : null,
       ),
       body: Builder(builder: (BuildContext context) {
         return ListView.separated(
@@ -170,7 +190,7 @@ class _RegistroViewState extends State<RegistroView> {
                             Navigator.push(context,
                               MaterialPageRoute(builder: (context) => RegistroView(
                                 pai: registros[index].id,
-                                superior: title,
+                                superior: isHome() ? title : null,
                               ),
                               ),
                             );
