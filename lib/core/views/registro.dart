@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:coletor_patrimonio/core/default.dart';
+import 'package:coletor_patrimonio/core/views/utils/bottomNavigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
@@ -97,8 +99,6 @@ class _RegistroViewState extends State<RegistroView> {
   bool isHome(){
     return widget.pai != null;
   }
-
-  Color primaryColor = Colors.purple.shade900;
 
   RoundedRectangleBorder appBarShap = const RoundedRectangleBorder(
     borderRadius: BorderRadius.only(
@@ -211,24 +211,19 @@ class _RegistroViewState extends State<RegistroView> {
           const Divider(),
         );
       }),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_link),
-            label: 'Patrimônio',
+      bottomNavigationBar: Container(
+        decoration: decoration,
+        child: ClipRRect(
+          borderRadius: borderRadius,
+          child: BottomNavigationBar(
+            items: navigationBarItem,
+            currentIndex: _selectedIndex,
+            selectedItemColor: Colors.white,
+            unselectedItemColor: Colors.white,
+            onTap: _onItemTapped,
+            backgroundColor: primaryColor,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.create_new_folder),
-            label: 'Pasta',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.qr_code_scanner_outlined),
-            label: 'Cód. barras',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.amber[800],
-        onTap: _onItemTapped,
+        ),
       ),
     );
   }
