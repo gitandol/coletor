@@ -5,9 +5,9 @@ import 'package:coletor_patrimonio/core/views/utils/bottomNavigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
-
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:coletor_patrimonio/core/models/registro.dart';
-import 'package:coletor_patrimonio/core/views/utils/iconButtom.dart';
+
 
 const BorderRadius styleBorder = BorderRadius.only(
   topLeft: Radius.circular(30),
@@ -35,6 +35,7 @@ class _RegistroViewState extends State<RegistroView> {
   final _formKey = GlobalKey<FormState>();
   final _registroController = TextEditingController();
   Registro? registro;
+  Registro? deletar;
   List<Registro> registros = [];
   int _selectedIndex = 0;
   String title = "";
@@ -146,69 +147,107 @@ class _RegistroViewState extends State<RegistroView> {
           padding: const EdgeInsets.all(8),
           itemCount: registros.length,
           itemBuilder: (BuildContext context, int index) {
-            return Container(
-              color: Colors.grey.shade200,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            return Slidable(
+              // The end action pane is the one at the right or the bottom side.
+              endActionPane: ActionPane(
+                motion: const ScrollMotion(),
                 children: [
-                  Row(
-                    children: [
-                      if (registros[index].tipo == "P")
-                        const Icon(
-                          Icons.folder, size: 29,
-                        ),
-                      const SizedBox(width: 5,),
-                      Text(
-                        '${registros[index].nome}',
-                        style: const TextStyle(fontSize: 23),
-                      ),
-
-                      iconButtom(
-                        context,
-                        registro: registros[index],
-                        color: Colors.blueAccent.shade700,
-                        icon: Icons.edit_note_rounded,
-                        function: _dialogBuilder
-                      ),
-
-                      iconButtom(
-                        context,
-                        registro: registros[index],
-                        color: Colors.redAccent.shade700,
-                        icon: Icons.delete_forever,
-                        function: _dialogDelete
-                      ),
-
-
-                    ],
+                  SlidableAction(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20.0),
+                      bottomRight: Radius.circular(20.0),
+                    ),
+                    // An action can be bigger than the others.
+                    flex: 2,
+                    onPressed: (context) {
+                      _dialogDelete(context, model: registros[index]);
+                    },
+                    backgroundColor: Colors.redAccent.shade700,
+                    foregroundColor: Colors.white,
+                    icon: Icons.delete_forever,
+                    label: 'Deletar',
                   ),
-                  if (registros[index].tipo == "P")
+                  const SizedBox(width: 5,),
+                  SlidableAction(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20.0),
+                      bottomRight: Radius.circular(20.0),
+                    ),
+                    flex: 2,
+                    onPressed: (context) {
+                      _dialogBuilder(
+                          context,
+                          model: registros[index],
+                          tipo: registros[index].tipo
+                      );
+                    },
+                    backgroundColor: Colors.blueAccent.shade700,
+                    foregroundColor: Colors.white,
+                    icon: Icons.edit_note_rounded,
+                    label: 'Editar',
+                  ),
+                ],
+              ),
+
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20.0),
+                    bottomRight: Radius.circular(20.0),
+                  ),
+                  boxShadow: const [
+                    BoxShadow(color: Colors.black38, spreadRadius: 0, blurRadius: 1),
+                  ],
+                ),
+              
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
                     Row(
                       children: [
-                        IconButton(
-                          onPressed: () {
-                            Navigator.push(context,
-                              MaterialPageRoute(builder: (context) => RegistroView(
-                                pai: registros[index].id,
-                                superior: isHome() ? title : null,
-                              ),
-                              ),
-                            );
-                          },
-                          icon: const Icon(
-                            Icons.arrow_circle_right,
-                            color: Colors.green,
-                            size: 30,
+                        if (registros[index].tipo == "P")
+                          const Icon(
+                            Icons.folder, size: 29,
                           ),
+                        const SizedBox(width: 5,),
+                        Text(
+                          '${registros[index].nome}',
+                          style: const TextStyle(fontSize: 23),
                         ),
                       ],
-                    )
-                ],
+                    ),
+                    if (registros[index].tipo == "P")
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              Navigator.push(context,
+                                MaterialPageRoute(builder: (context) => RegistroView(
+                                  pai: registros[index].id,
+                                  superior: isHome() ? title : null,
+                                ),
+                                ),
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.arrow_circle_right,
+                              color: Colors.green,
+                              size: 30,
+                            ),
+                          ),
+                        ],
+                      )
+                  ],
+                ),
               ),
             );
           },
           separatorBuilder: (BuildContext context, int index) =>
-          const Divider(),
+          const SizedBox(height: 10,),
         );
       }),
       bottomNavigationBar: Container(
