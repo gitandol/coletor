@@ -10,9 +10,10 @@ const String columnTipo = 'tipo';
 const createTableRegistro = '''
   CREATE TABLE IF NOT EXISTS $tableName ( 
     $columnId INTEGER PRIMARY KEY autoincrement, 
-    $columnPai INTEGER NOT NULL,
+    $columnPai INTEGER,
     $columnNome TEXT NOT NULL,
-    $columnTipo TEXT NOT NULL
+    $columnTipo TEXT NOT NULL,
+    FOREIGN KEY ($columnPai) REFERENCES $tableName ($columnId) ON DELETE CASCADE
   )
 ''';
 
@@ -20,7 +21,7 @@ class Registro {
   late Database db;
 
   int? id;
-  int? pai = 0;
+  int? pai;
   String? nome;
   String? tipo;
 
@@ -53,6 +54,34 @@ class Registro {
     }
   }
 
+  Future<List<String>> path({required List<String> local}) async {
+    // Registro? registro = await Registro.get(id: pai);
+    // if (registro != null){
+    //   local.insert(0, registro.nome.toString());
+    //   if (registro.pai != null){
+    //     local = await registro.path(local: local);
+    //   }
+    // } else {
+    //   if (local.isEmpty){
+    //     local.add("Início");
+    //   }
+    // }
+    // return local;
+
+    if (pai != null){
+      Registro? registro = await Registro.get(id: pai);
+      if (registro != null){
+        local.insert(0, registro.nome.toString());
+        local = await registro.path(local: local);
+      }
+    } else {
+      if (local.isEmpty){
+        local.add("Início");
+      }
+    }
+    return local;
+  }
+
   static Future<Registro?> get({
     id, pai, nome, tipo
   }) async {
@@ -61,7 +90,7 @@ class Registro {
     List<String> args = [];
     if (id != null){ args.add("id=$id"); }
     if (pai != null){ args.add("$columnPai=$pai"); }
-    if (nome != null){ args.add("$columnNome=$nome"); }
+    if (nome != null){ args.add("$columnNome='$nome'"); }
     if (tipo != null){ args.add("$columnTipo=$tipo"); }
 
     String select = 'SELECT * FROM $tableName';
@@ -83,8 +112,10 @@ class Registro {
     List<String> args = [];
     if (id != null){ args.add("id=$id"); }
     if (pai != null){ args.add("$columnPai=$pai"); }
-    if (nome != null){ args.add("$columnNome=$nome"); }
+    if (nome != null){ args.add("$columnNome='$nome'"); }
     if (tipo != null){ args.add("$columnTipo=$tipo"); }
+
+    if (args.isEmpty){ args.add("$columnPai is null"); }
 
     String select = 'SELECT * FROM $tableName';
     if (args.isNotEmpty) { select += " WHERE ${args.join(" and ")} ORDER BY $columnTipo DESC"; };

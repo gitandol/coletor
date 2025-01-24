@@ -36,7 +36,7 @@ class _RegistroViewState extends State<RegistroView> {
   String corLine = "#ff6666";
 
   void atualizaRegistros(){
-    Registro.filter(pai: widget.pai ?? 0).then((value) {
+    Registro.filter(pai: widget.pai).then((value) {
       setState(() {
         registros = value;
       });
@@ -68,6 +68,7 @@ class _RegistroViewState extends State<RegistroView> {
         return BodyPage(
           registros: registros,
           alertEdit: dialogBuilder,
+          atualizaRegistros: atualizaRegistros,
           title: widget.pai != null ? title : null,
         );
       }),
@@ -90,6 +91,7 @@ class _RegistroViewState extends State<RegistroView> {
   }
 
   void _onItemTapped(int index) {
+    atualizaRegistros();
     setState(() {
       _selectedIndex = index;
     });

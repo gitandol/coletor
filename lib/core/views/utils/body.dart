@@ -1,3 +1,4 @@
+import 'package:coletor_patrimonio/core/default.dart';
 import 'package:coletor_patrimonio/core/models/registro.dart';
 import 'package:coletor_patrimonio/core/views/registro.dart';
 import 'package:coletor_patrimonio/core/views/utils/functions.dart';
@@ -9,12 +10,14 @@ class BodyPage extends StatefulWidget {
     super.key,
     required this.registros,
     required this.alertEdit,
+    required this.atualizaRegistros,
     this.title
   });
 
   List<Registro> registros;
   final String? title;
   Function alertEdit;
+  Function atualizaRegistros;
 
   @override
   State<BodyPage> createState() => _BodyPageState();
@@ -28,6 +31,9 @@ class _BodyPageState extends State<BodyPage> {
       itemCount: widget.registros.length,
       itemBuilder: (BuildContext context, int index) {
         Registro registro = widget.registros[index];
+        Icon icon = registro.tipo == "P"
+          ? Icon(iconPasta, size: 29, color: Colors.amber,)
+          :Icon(iconPatrimonio, size: 29, color: Colors.black,);
         return Slidable(
           // The end action pane is the one at the right or the bottom side.
           endActionPane: ActionPane(
@@ -90,10 +96,7 @@ class _BodyPageState extends State<BodyPage> {
               children: [
                 Row(
                   children: [
-                    if (registro.tipo == "P")
-                      const Icon(
-                        Icons.folder, size: 29,
-                      ),
+                    icon,
                     const SizedBox(width: 5,),
                     Text(
                       '${registro.nome}',
@@ -168,6 +171,7 @@ class _BodyPageState extends State<BodyPage> {
                 ),
                 onPressed: () async {
                   _deleteRegistro(context, model: model);
+                  widget.atualizaRegistros();
                   Navigator.of(context).pop();
                 },
                 child: const Row(

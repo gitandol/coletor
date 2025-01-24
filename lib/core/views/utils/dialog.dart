@@ -1,5 +1,7 @@
+import 'package:coletor_patrimonio/core/default.dart';
 import 'package:coletor_patrimonio/core/models/registro.dart';
 import 'package:coletor_patrimonio/core/views/registro.dart';
+import 'package:coletor_patrimonio/core/views/utils/functions.dart';
 import 'package:flutter/material.dart';
 
 class DialogPage extends StatefulWidget {
@@ -27,19 +29,32 @@ class _DialogPageState extends State<DialogPage> {
   TextInputType typeInput = TextInputType.text;
   String descricao = "Nome";
   String titulo = "Adicionar";
+  bool podeSalvar = false;
+  IconData icon = iconPasta;
 
-  @override
-  Widget build(BuildContext context) {
+  void _checkName(){
     if (widget.tipo == "I"){
       typeInput = TextInputType.number;
       descricao = "Código";
+      icon = iconPatrimonio;
     }
 
     if (widget.model != null){
       titulo = "Editar";
       _registroController.text = widget.model!.nome!;
     }
+  }
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _checkName();
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
     return AlertDialog(
       alignment: AlignmentDirectional.center,
       title: Text(titulo, style: const TextStyle(fontSize: 20),),
@@ -63,7 +78,7 @@ class _DialogPageState extends State<DialogPage> {
                             keyboardType: typeInput,
                             decoration: _InputDecoration(
                               descricao,
-                              Icons.location_on,
+                              icon,
                               _registroController,
                             ),
                             validator: (text) {
@@ -71,6 +86,15 @@ class _DialogPageState extends State<DialogPage> {
                                 return '$descricao inválido';
                               }
                               return null;
+                            },
+                            onChanged: (value) {
+                              setState(() {
+                                podeSalvar = isValid(
+                                  value: value,
+                                  text: _registroController.text,
+                                  name: widget.model?.nome
+                                );
+                              });
                             },
                           ),
                         ),
@@ -102,31 +126,48 @@ class _DialogPageState extends State<DialogPage> {
         ),
         ElevatedButton(
             style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all(Colors.green.shade600),
+              backgroundColor: MaterialStateProperty.all(
+                  (podeSalvar) ? Colors.green.shade600 : Colors.grey.shade600
+              ),
             ),
-            onPressed: () async {
-
-              if (widget.model == null){
-                await Registro(
+            onPressed: (podeSalvar) ? () async {
+              Registro? salvo = await Registro.get(nome: _registroController.text);
+              if (salvo == null) {
+                if (widget.model == null) {
+                  await Registro(
                     nome: _registroController.text,
-                    pai: widget.pai ?? 0,
+                    pai: widget.pai,
                     tipo: widget.tipo ?? "P",
-                ).insert();
+                  ).insert();
+                } else {
+                  widget.model!.nome = _registroController.text;
+                  await widget.model!.update();
+                }
+                widget.function();
+                setState(() { _registroController.text = ""; });
+                Navigator.of(context).pop();
               } else {
-                widget.model!.nome = _registroController.text;
-                await widget.model!.update();
-              }
 
-              widget.function();
+                List<String> local = await salvo.path(local: []);
+                String path = local.join(' / ');
+
+                Navigator.of(context).pop();
+                showDialogMessage(
+                  context,
+                  title: "Atenção!",
+                  message: "${_registroController.text} já está cadastrado em: $path!",
+                  isError: true
+                );
+              }
+              // widget.function();
               setState(() { _registroController.text = ""; });
-              Navigator.of(context).pop();
-            },
+            } : null,
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.save, size: 20, color: Colors.white),
                 SizedBox(width: 5,),
-                Text("Salvar", style: TextStyle(color: Colors.white),)
+                Text("Salvarz", style: TextStyle(color: Colors.white),)
               ],
             )
         ),
@@ -146,7 +187,7 @@ class _DialogPageState extends State<DialogPage> {
         ),
         prefixIcon: Icon(
           icon,
-          color: const Color(0xFF4158d0),
+          color: const Color(0xff4a148c),
         ),
         suffixIcon: controller.text.isEmpty
             ? Container(width: 0,)
@@ -154,6 +195,37 @@ class _DialogPageState extends State<DialogPage> {
           icon: const Icon(Icons.close),
           onPressed: () => controller.clear(),
         )
+    );
+  }
+
+  void showDialogMessage(BuildContext context,
+      {required String title, required String message, required bool isError}) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: isError ? Colors.red[50] : Colors.green[50], // Cor de fundo ajustada
+          title: Text(
+            title,
+            style: TextStyle(color: isError ? Colors.red : Colors.green),
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(color: Colors.black), // Cor do texto para contraste
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'OK',
+                style: TextStyle(color: isError ? Colors.red : Colors.green),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

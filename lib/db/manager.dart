@@ -12,15 +12,21 @@ class Manager {
 
   get database async {
     // await deleteDatabase(join(await getDatabasesPath(), DB_NAME));
+
     if (_database != null) return _database;
     return await _initDatabase();
   }
+
+
 
   _initDatabase() async {
     String path = join(await getDatabasesPath(), DB_NAME);
     return openDatabase(
       path, version: 1,
       onCreate: _onCreate,
+      onConfigure: (db) async {
+        await db.execute('PRAGMA foreign_keys = ON;');
+      },
     );
   }
 

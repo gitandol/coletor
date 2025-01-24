@@ -24,7 +24,7 @@ Future<void> scanQR({mounted, pai}) async {
 
   _scanBarcode = barcodeScanRes;
   if (_scanBarcode != "-1") {
-    await Registro(nome: _scanBarcode, pai: pai ?? 0, tipo: "I").insert();
+    await Registro(nome: _scanBarcode, pai: pai, tipo: "I").insert();
   }
 }
 
@@ -45,4 +45,10 @@ Future<String> getTitle({pai, superior}) async {
 
 bool isHome(pai){
   return pai != null;
+}
+
+bool isValid({required String value, text, name}){
+  if (value.isEmpty) return false;
+  if (text == name) return false;
+  return true;
 }
